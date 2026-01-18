@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Fundamentals Quiz - Chapter 1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            height: 8px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-area {
+            padding: 40px;
+        }
+
+        .question-card {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .option.wrong {
+            border-color: #ef4444;
+            background: #fee2e2;
+            animation: wrongShake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .feedback.wrong {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-prev {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-prev:hover {
+            background: #d0d0d0;
+        }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result-screen.show {
+            display: block;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .score-text {
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .result-message {
+            font-size: 1.5em;
+            color: #333;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .result-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .result-details h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .quiz-area {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .question-text {
+                font-size: 1.1em;
+            }
+
+            .score-circle {
+                width: 150px;
+                height: 150px;
+            }
+
+            .score-text {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐍 Python Fundamentals Quiz</h1>
+            <p>Chapter 1: Basic Syntax, Operators & Variables</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="quiz-area" id="quizArea">
+            <!-- Questions will be dynamically inserted here -->
+        </div>
+
+        <div class="result-screen" id="resultScreen">
+            <h2>🎉 Quiz Completed!</h2>
+            <div class="score-circle">
+                <div class="score-text" id="scorePercentage">0%</div>
+            </div>
+            <div class="result-message" id="resultMessage"></div>
+            <div class="result-details">
+                <h3>📊 Detailed Results</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Total Questions:</span>
+                    <span class="detail-value" id="totalQuestions">0</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Correct Answers:</span>
+                    <span class="detail-value" style="color: #10b981;" id="correctAnswers">0</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Wrong Answers:</span>
+                    <span class="detail-value" style="color: #ef4444;" id="wrongAnswers">0</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Score Percentage:</span>
+                    <span class="detail-value" id="scoreDetail">0%</span>
+                </div>
+            </div>
+            <button class="btn btn-restart" onclick="restartQuiz()">🔄 Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "Which character is used in Python to make a single line comment?",
+                options: ["/", "//", "!", "#"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of print(type(2**5)) in python?",
+                options: ["<class 'int'>", "<class 'float'>", "<class 'double'>", "<class 'integer'>"],
+                correct: 0
+            },
+            {
+                question: "What will be the output of print(type(\"LJU\")) in python?",
+                options: ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'char'>"],
+                correct: 2
+            },
+            {
+                question: "What will be the output of print(type(3*5/5)) in python?",
+                options: ["<class 'int'>", "<class 'float'>", "<class 'double'>", "<class 'integer'>"],
+                correct: 1
+            },
+            {
+                question: "If x=3.123, then int(x) will give?",
+                options: ["1", "3", "4", "3.12"],
+                correct: 1
+            },
+            {
+                question: "Which one of the following is correct way of declaring and initialising a variable, x with value 5?",
+                options: ["int x\nx=5", "int x=5", "x=5", "declare x=5"],
+                correct: 2
+            },
+            {
+                question: "Which of the following is an invalid statement?",
+                options: ["abc = 1,000,000", "a b c = 1000 2000 3000", "a,b,c = 1000, 2000, 3000", "a_b_c = 1,000,000"],
+                correct: 1
+            },
+            {
+                question: "Which of the following is invalid?",
+                options: ["_x = 1", "__x = 1", "__x__ = 1", "None of the mentioned"],
+                correct: 3
+            },
+            {
+                question: "Which of the following cannot be a variable?",
+                options: ["__in__", "in", "it", "__it__"],
+                correct: 1
+            },
+            {
+                question: "Which of the following is an invalid variable?",
+                options: ["char_1", "1st_char", "oopec", "_"],
+                correct: 1
+            },
+            {
+                question: "What happens when '2' == 2 is executed?",
+                options: ["True", "False", "ValueError", "TypeError"],
+                correct: 1
+            },
+            {
+                question: "What will be the output of this program?\n_ = '1 2 3 4 5 6'\nprint(_)",
+                options: ["SyntaxError: EOL while scanning string literal", "SyntaxError: invalid syntax", "NameError: name '_' is not defined", "1 2 3 4 5 6"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of the following program on execution?\nprint(print(print(\"python\")))",
+                options: ["None\nNone\npython", "python\nNone\nNone", "None\npython\nNone", "Error"],
+                correct: 1
+            },
+            {
+                question: "Which is the correct operator for power(X^y)?",
+                options: ["X^y", "X**y", "X^^y", "None of the mentioned"],
+                correct: 1
+            },
+            {
+                question: "What is the answer to this expression, 34 % 3 is?",
+                options: ["7", "1", "0", "5"],
+                correct: 1
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=0\nb=6\nx=(a or b) or ((a and a) or (a and b))\nprint(x)",
+                options: ["0", "6", "True", "False"],
+                correct: 1
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=0\nb=6\nx=(a or b) or ((a and a) or (a and b))\ny=not(x)\nprint(y)",
+                options: ["0", "6", "True", "False"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of this program?\nprint(True ** False / True)",
+                options: ["True ** False / True", "1.0", "0", "Error"],
+                correct: 1
+            },
+            {
+                question: "Which of the following error occurs when you execute the following Python code?\napple = mango",
+                options: ["Type Error", "Value Error", "Name Error", "Syntax Error"],
+                correct: 2
+            },
+            {
+                question: "What is the output of this expression, 3*1**3?",
+                options: ["1", "3", "9", "27"],
+                correct: 1
+            },
+            {
+                question: "Select option that will print:\nhello-how-are-you",
+                options: ["print('hello-' + 'how-are-you')", "print('hello', 'how', 'are', 'you')", "print('hello', 'how', 'are', 'you' + '-' * 4)", "print('hello' + '-' + 'how' + '-' + 'are' + 'you')"],
+                correct: 0
+            },
+            {
+                question: "Which of the following is not a comparison operator in Python?",
+                options: [">=", "<=", "=", "!="],
+                correct: 2
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=4\nb=6\nc=3\nprint(a+b*c/a-b)",
+                options: ["1.5", "2", "2.5", "3"],
+                correct: 2
+            },
+            {
+                question: "What will be the value of the following Python expression?\n8 + 2 % 3",
+                options: ["10", "8", "9", "7"],
+                correct: 0
+            },
+            {
+                question: "What will be the value of x in the following Python expression?\nx = int(63.55+8/3)",
+                options: ["65", "66", "23", "24"],
+                correct: 1
+            },
+            {
+                question: "What are the values of the following Python expressions?\n2**(3**2)\n(2**3)**2\n2**3**2",
+                options: ["64, 512, 64", "64, 64, 64", "512, 512, 512", "512, 64, 512"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of this program?\nprint((7*5**2)/True*False)",
+                options: ["175.0", "70.0", "0", "0.0"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of this program?\nprint(6 + 5 - 4 * 3 / 2 % 1)",
+                options: ["15.0", "7.0", "11.0", "10.0"],
+                correct: 2
+            },
+            {
+                question: "What will be the output of this program?\nprint(int(6 == 6.0) * 3 + 4 % 5)",
+                options: ["Error", "22", "7", "18"],
+                correct: 2
+            },
+            {
+                question: "What will be the value of X in the following Python expression?\nX = 2+9*((3*12)-8)/10",
+                options: ["30.0", "30.8", "28.4", "27.2"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of the following Python code?\nnew= (1 and \"True\") and ('False' or Train)\nstr= 'This statement is '+ new\nprint(\"This is False\" if \"False\" in new else \"This is True\")",
+                options: ["This is True", "NameError – Train not defined", "This is False", "Syntax Error – invalid syntax"],
+                correct: 2
+            },
+            {
+                question: "What will be the value of the following Python expression?\n8 + 1 % 3",
+                options: ["8", "9", "10", "11"],
+                correct: 1
+            },
+            {
+                question: "What should be the output of the following python code snippet:\nx=0.0\ny=48>0\nz=11<7\nprint(not(float(x or y or z)))",
+                options: ["True", "False", "Error", "No output"],
+                correct: 1
+            },
+            {
+                question: "What will be the output of the following program on execution?\nx=Str(\"Python is a very\\b simple\\bsubject\")\nprint(x)",
+                options: ["Python is a verysimpleubject", "Python is a versimplsubject", "Name Error", "None of mentioned"],
+                correct: 2
+            },
+            {
+                question: "What is the output of the following assignment operator\na=10\nb=a-=2\nprint(b)",
+                options: ["12", "8", "9", "Syntax Error"],
+                correct: 3
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=4\nb=6\nc=3\nd=2\nprint(a+d**b*c/a-b)",
+                options: ["64.0", "46.0", "52.0", "192.0"],
+                correct: 1
+            },
+            {
+                question: "What will be the output of this program?\nprint(int(\"6\" == 6.0) * 3 + 4 % 5)",
+                options: ["4", "6", "22", "Error"],
+                correct: 0
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=0\nb=6\nc=9\nd=10\nx=(a or b) and ((a or c) or (b and d))\nprint(x)",
+                options: ["0", "6", "9", "10"],
+                correct: 2
+            },
+            {
+                question: "What will be the value of X in the following Python expression?\nX = 2+9*((3*12)-8)/10\nprint(bool(X))",
+                options: ["True", "0", "30", "30.8"],
+                correct: 0
+            },
+            {
+                question: "What will be the datatype of the var in the below code snippet?\nvar = 10\nprint(type(var))\nvar = \"Hello\"\nprint(type(var))",
+                options: ["int", "int,str", "str", "str,str"],
+                correct: 1
+            },
+            {
+                question: "What will be the output of this program?\nprint(True * False / True)",
+                options: ["0", "0.0", "1.0", "Error"],
+                correct: 1
+            },
+            {
+                question: "What is the output of the following python code:\nx=125\ny=13\nx//=y\nprint(x)",
+                options: ["125/13", "10", "9", "9.62"],
+                correct: 2
+            },
+            {
+                question: "What is the output of following python code:\nprint(bool(0), bool(3.14159), bool(-3), bool(False))",
+                options: ["False True True False", "True True True False", "False False True False", "False True False False"],
+                correct: 0
+            },
+            {
+                question: "a=5\nb=10\nc=1\nprint(a**c, b//a, c%a)",
+                options: ["5 2 2", "5 2 1", "5 2 5", "5 10 5"],
+                correct: 1
+            },
+            {
+                question: "Which of the following is invalid?",
+                options: ["1x=1", "x1=1", "__x__=1", "_x=1"],
+                correct: 0
+            },
+            {
+                question: "What is the output of this expression, 3**1**3/True?",
+                options: ["1", "3", "3.0", "27"],
+                correct: 2
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=0\nb=5\na or b ==5 or True + 7 -4 * 3",
+                options: ["True", "1", "0", "False"],
+                correct: 0
+            },
+            {
+                question: "What will be the output of the following program on execution?\na=50\nb=60\nprint((a and b)/False)",
+                options: ["0", "60", "50", "Error"],
+                correct: 3
+            },
+            ]
+
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+
+        function initQuiz() {
+            renderQuestion();
+            updateProgress();
+        }
+
+        function renderQuestion() {
+            const quizArea = document.getElementById('quizArea');
+            const q = quizData[currentQuestion];
+            
+            quizArea.innerHTML = `
+                <div class="question-card active">
+                    <div class="question-number">Question ${currentQuestion + 1} of ${quizData.length}</div>
+                    <div class="question-text">${q.question.replace(/\n/g, '<br>')}</div>
+                    <div class="options">
+                        ${q.options.map((option, index) => `
+                            <div class="option" onclick="selectAnswer(${index})">
+                                <span class="option-label">${String.fromCharCode(65 + index)}.</span>
+                                <span>${option}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="feedback" id="feedback"></div>
+                    <div class="nav-buttons">
+                        ${currentQuestion > 0 ? '<button class="btn btn-prev" onclick="previousQuestion()">← Previous</button>' : '<div></div>'}
+                        <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" disabled>
+                            ${currentQuestion < quizData.length - 1 ? 'Next →' : 'Finish Quiz'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectAnswer(selectedIndex) {
+            const options = document.querySelectorAll('.option');
+            const correctIndex = quizData[currentQuestion].correct;
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // Disable all options after selection
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            // Mark selected answer
+            options[selectedIndex].classList.add('selected');
+
+            if (selectedIndex === correctIndex) {
+                options[selectedIndex].classList.add('correct');
+                feedback.className = 'feedback correct show';
+                feedback.innerHTML = '✅ Correct! Well done!';
+                if (userAnswers[currentQuestion] === undefined) {
+                    score++;
+                }
+            } else {
+                options[selectedIndex].classList.add('wrong');
+                options[correctIndex].classList.add('correct');
+                feedback.className = 'feedback wrong show';
+                feedback.innerHTML = `❌ Wrong! The correct answer is: <strong>${String.fromCharCode(65 + correctIndex)}. ${quizData[currentQuestion].options[correctIndex]}</strong>`;
+            }
+
+            userAnswers[currentQuestion] = selectedIndex;
+            nextBtn.disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+                updateProgress();
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+                updateProgress();
+                
+                // If already answered, show the answer
+                if (userAnswers[currentQuestion] !== undefined) {
+                    const selectedIndex = userAnswers[currentQuestion];
+                    const correctIndex = quizData[currentQuestion].correct;
+                    const options = document.querySelectorAll('.option');
+                    
+                    options.forEach(opt => opt.classList.add('disabled'));
+                    options[selectedIndex].classList.add('selected');
+                    
+                    if (selectedIndex === correctIndex) {
+                        options[selectedIndex].classList.add('correct');
+                        document.getElementById('feedback').className = 'feedback correct show';
+                        document.getElementById('feedback').innerHTML = '✅ Correct! Well done!';
+                    } else {
+                        options[selectedIndex].classList.add('wrong');
+                        options[correctIndex].classList.add('correct');
+                        document.getElementById('feedback').className = 'feedback wrong show';
+                        document.getElementById('feedback').innerHTML = `❌ Wrong! The correct answer is: <strong>${String.fromCharCode(65 + correctIndex)}. ${quizData[currentQuestion].options[correctIndex]}</strong>`;
+                    }
+                    
+                    document.getElementById('nextBtn').disabled = false;
+                }
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function showResults() {
+            const percentage = Math.round((score / quizData.length) * 100);
+            let message = '';
+            
+            if (percentage >= 90) {
+                message = '🌟 Outstanding! You have excellent knowledge of Python fundamentals!';
+            } else if (percentage >= 75) {
+                message = '👏 Great job! You have a strong grasp of the concepts!';
+            } else if (percentage >= 60) {
+                message = '👍 Good effort! Keep practicing to improve further.';
+            } else if (percentage >= 40) {
+                message = '📚 You need more practice. Review the concepts and try again.';
+            } else {
+                message = '💪 Don\'t give up! Study the material and retake the quiz.';
+            }
+
+            document.getElementById('quizArea').style.display = 'none';
+            document.getElementById('resultScreen').classList.add('show');
+            document.getElementById('scorePercentage').textContent = percentage + '%';
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('totalQuestions').textContent = quizData.length;
+            document.getElementById('correctAnswers').textContent = score;
+            document.getElementById('wrongAnswers').textContent = quizData.length - score;
+            document.getElementById('scoreDetail').textContent = percentage + '%';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = [];
+            document.getElementById('resultScreen').classList.remove('show');
+            document.getElementById('quizArea').style.display = 'block';
+            initQuiz();
+        }
+
+        // Initialize quiz on page load
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
